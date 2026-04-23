@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sectioner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===== LANDING SCREEN ===== -->
+  <div id="landing-screen">
+    <div class="landing-content">
+
+      <div class="landing-logo">Section<em class="logo-accent">er</em></div>
+      <p class="landing-tagline">Edit documents by section — not by re-typing<br>location. Focused by design.</p>
+
+      <div class="landing-card">
+        <h3 class="landing-card-title">Get started</h3>
+        <p class="landing-card-desc">
+          Enter your Anthropic API key to begin. It stays in your browser
+          and is never stored or sent anywhere except Anthropic's API.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="landing-api-key">Anthropic API Key</label>
+          <div class="input-row">
+            <input
+              type="password"
+              id="landing-api-key"
+              class="text-input"
+              placeholder="sk-ant-api03-..."
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <button id="btn-toggle-key" class="btn-eye" title="Show / hide key" aria-label="Toggle key visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div id="landing-key-error" class="landing-key-error hidden">Invalid key — Anthropic keys start with <code>sk-ant-</code></div>
+        <a
+            href="https://console.anthropic.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="api-key-link"
+          >Don't have a key? Get one from Anthropic Console →</a>
+        </div>
+
+        <button id="btn-start-writing" class="btn-start" disabled>Start writing →</button>
+      </div>
+
+      <div class="landing-features">
+        <div class="feature-item">
+          <span class="feature-icon">🎯</span>
+          <span>Click to edit any section<br>without typing its name</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔍</span>
+          <span>Diff view shows only<br>what changed</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">⚙️</span>
+          <span>Set tone and constraints once,<br>applied everywhere</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP (hidden until API key entered) ===== -->
+  <div id="app-screen" class="hidden">
+
+    <!-- Top Bar -->
+    <header id="topbar">
+      <div class="topbar-left">
+        <span class="app-title">Section<em class="logo-accent">er</em></span>
+        <span class="topbar-sep">·</span>
+        <span id="doc-title" class="doc-title">Untitled document</span>
+      </div>
+      <div class="topbar-right">
+        <button id="btn-change-key" class="btn-key" title="Change API key">🔑 API key</button>
+        <button id="btn-constraints-toggle" class="constraints-pill" title="Manage writing constraints">
+          <span class="pill-dot" id="pill-dot">●</span>
+          <span id="constraints-count-label">0 constraints</span>
+        </button>
+        <button id="btn-consistency-check" class="btn-outlined">
+          + Check consistency
+        </button>
+        <div class="export-wrapper">
+          <button id="btn-export-trigger" class="btn-primary export-btn">
+            Export
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="export-dropdown" class="dropdown-menu hidden">
+            <button id="btn-export-clipboard" class="dropdown-item">Copy to clipboard</button>
+            <button id="btn-export-md" class="dropdown-item">Download .md</button>
+            <button id="btn-export-txt" class="dropdown-item">Download .txt</button>
+            <div class="dropdown-divider"></div>
+            <button id="btn-export-gdocs" class="dropdown-item dropdown-item-gdocs">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z" fill="#4285F4"/><path d="M14 2v6h6" fill="#A8C7FA"/><path d="M8 13h8M8 16h5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Open in Google Docs
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Constraints popover (shown when pill clicked) -->
+    <div id="constraints-popover" class="constraints-popover hidden">
+      <div class="constraints-popover-inner">
+        <div class="constraint-field">
+          <label for="c-tone" class="c-label">Tone</label>
+          <select id="c-tone" class="c-select">
+            <option value="">— none —</option>
+            <option value="Formal">Formal</option>
+            <option value="Neutral">Neutral</option>
+            <option value="Conversational">Conversational</option>
+            <option value="Technical">Technical</option>
+          </select>
+        </div>
+        <div class="constraint-field">
+          <label for="c-audience" class="c-label">Audience</label>
+          <input id="c-audience" type="text" class="c-input" placeholder="e.g. engineering team">
+        </div>
+        <div class="constraint-field">
+          <label for="c-maxlength" class="c-label">Max length (words)</label>
+          <input id="c-maxlength" type="number" class="c-input" placeholder="e.g. 200" min="1">
+        </div>
+        <div class="constraint-field">
+          <label for="c-custom" class="c-label">Custom rule</label>
+          <input id="c-custom" type="text" class="c-input" placeholder="e.g. avoid passive voice">
+        </div>
+      </div>
+    </div>
+
+    <!-- Three-column workspace -->
+    <main id="workspace">
+
+      <!-- Column 1: Sections Sidebar -->
+      <aside id="sidebar">
+        <div class="sidebar-top">
+          <span class="sidebar-label">SECTIONS</span>
+          <button id="btn-new-doc" class="btn-new-doc">+ New document</button>
+        </div>
+        <div id="section-list">
+          <div id="sidebar-empty-state" class="sidebar-empty">
+            <div class="sidebar-empty-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <p>Generate a document to see sections here</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Column 2: Document View -->
+      <article id="document-view">
+
+        <!-- Empty state: prompt to generate -->
+        <div id="document-empty-state">
+          <h2 class="gen-heading">What are you writing today?</h2>
+          <p class="gen-subheading">
+            Describe your document and Claude will generate a structured draft
+            with named sections you can edit individually.
+          </p>
+          <textarea
+            id="prompt-input"
+            class="gen-textarea"
+            placeholder="e.g. Write a product requirements document for an AI-powered document editor targeting product managers…"
+            rows="4"
+          ></textarea>
+          <div id="prompt-chips" class="prompt-chips"></div>
+          <button id="btn-generate" class="btn-generate">Generate document →</button>
+          <div id="prompt-error" class="error-message hidden"></div>
+        </div>
+
+        <!-- Document content (injected after generation) -->
+        <div id="document-content" class="hidden"></div>
+
+      </article>
+
+      <!-- Column 3: Edit Panel (always visible, shows state) -->
+      <aside id="edit-panel">
+
+        <!-- Empty state -->
+        <div id="edit-panel-empty" class="edit-empty">
+          <div class="edit-empty-arrow">←</div>
+          <h3 class="edit-empty-title">Select a section</h3>
+          <p class="edit-empty-desc">Click any section in the document<br>to open it here for editing</p>
+        </div>
+
+        <!-- Active edit state (hidden until section selected) -->
+        <div id="edit-panel-content" class="hidden">
+          <div id="edit-panel-header">
+            <span id="edit-section-title" class="edit-section-title"></span>
+            <button id="btn-close-edit" class="btn-icon-close" title="Close (Escape)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div id="edit-section-content" class="edit-section-content"></div>
+          <div id="edit-controls">
+            <div id="active-constraints-summary" class="constraints-summary hidden"></div>
+            <label for="edit-instruction" class="edit-label">Your instruction</label>
+            <textarea
+              id="edit-instruction"
+              class="edit-textarea"
+              placeholder="Describe your edit… (Enter to submit, Escape to close)"
+              rows="4"
+            ></textarea>
+            <div class="edit-action-row">
+              <button id="btn-submit-edit" class="btn-primary" disabled>Apply Edit ▶</button>
+              <button id="btn-undo-edit" class="btn-outlined" disabled>Undo</button>
+            </div>
+            <div id="edit-error" class="error-message hidden"></div>
+          </div>
+        </div>
+
+      </aside>
+
+    </main>
+
+  </div><!-- /#app-screen -->
+
+  <!-- Consistency Check Modal -->
+  <div id="modal-consistency" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-consistency-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modal-consistency-title">Consistency Check</h2>
+        <button class="btn-close-modal btn-icon-close" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="consistency-results"></div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="hidden" role="status" aria-live="polite">
+    <div class="spinner"></div>
+    <span id="loading-message">Loading…</span>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
